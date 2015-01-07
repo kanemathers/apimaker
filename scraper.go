@@ -14,10 +14,13 @@ var (
 )
 
 type Job struct {
+	Id          string
 	URL         string
 	Interval    int
 	LastScraped time.Time
 	Collections map[string]Collection
+
+	scrapedData ScrapedElements
 }
 
 type Collection struct {
@@ -32,23 +35,23 @@ type Selector struct {
 
 type ScrapedElements map[string][]map[string]string
 
-func (self *Job) Scrape() (ScrapedElements, error) {
+func (self *Job) Scrape() error {
 	wd, err := selenium.NewRemote(capabilities, "")
 
 	if err != nil {
-		return nil, fmt.Errorf("error starting selenium: %s\n", err)
+		return fmt.Errorf("error starting selenium: %s\n", err)
 	}
 
 	defer wd.Quit()
 
 	if err := wd.Get(self.URL); err != nil {
-		return nil, fmt.Errorf("error fetching URL: %s\n", err)
+		return fmt.Errorf("error fetching URL: %s\n", err)
 	}
 
 	root, err := wd.FindElements(selenium.ByCSSSelector, "html")
 
 	if err != nil {
-		return nil, fmt.Errorf("error finding `html` element: %s\n", err)
+		return fmt.Errorf("error finding `html` element: %s\n", err)
 	}
 
 	scraped := make(ScrapedElements)
@@ -84,7 +87,8 @@ func (self *Job) Scrape() (ScrapedElements, error) {
 		}
 	}
 
+	self.scrapedData = scraped
 	self.LastScraped = time.Now()
 
-	return scraped, nil
+	return nil
 }
