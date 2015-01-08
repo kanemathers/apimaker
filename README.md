@@ -73,16 +73,12 @@ Start a python HTTP server to host the demo page:
                 [
                     {
                         "title": "First News Post"
-                    },
-                    {
                         "content": "The content of the first news post"
                     }
                 ],
                 [
                     {
                         "title": "And the Second Post!"
-                    },
-                    {
                         "content": "The second news post has boring content. Like the first."
                     }
                 ]
