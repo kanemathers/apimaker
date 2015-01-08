@@ -32,7 +32,7 @@ type Selector struct {
 	Name     string `json:"name"`
 }
 
-type ScrapedElements map[string][]map[string]string
+type ScrapedElements map[string][][]map[string]string
 
 func (self *Job) Scrape() error {
 	wd, err := selenium.NewRemote(capabilities, "")
@@ -65,6 +65,8 @@ func (self *Job) Scrape() error {
 		}
 
 		for _, parent := range root {
+			values := make([]map[string]string, 0)
+
 			for _, selector := range collection.Selectors {
 				el, err := parent.FindElement(selenium.ByCSSSelector, selector.Selector)
 
@@ -81,8 +83,10 @@ func (self *Job) Scrape() error {
 				value := make(map[string]string)
 				value[selector.Name] = text
 
-				scraped[name] = append(scraped[name], value)
+				values = append(values, value)
 			}
+
+			scraped[name] = append(scraped[name], values)
 		}
 	}
 
