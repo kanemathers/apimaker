@@ -104,6 +104,8 @@ func main() {
 	scheduler := NewScheduler()
 	router := httprouter.New()
 
+	scheduler.Start()
+
 	router.GET("/jobs", getJobs(scheduler))
 	router.POST("/jobs", addJob(scheduler))
 	router.GET("/jobs/:id", getJob(scheduler))

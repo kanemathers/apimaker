@@ -31,17 +31,23 @@ func (self *Scheduler) AddJob(job *Job) string {
 }
 
 func (self *Scheduler) Start() {
-	for job := range self.newJobChan {
-		duration, err := time.ParseDuration(fmt.Sprintf("%ds", job.Interval))
+	go func() {
+		for job := range self.newJobChan {
+			duration, err := time.ParseDuration(fmt.Sprintf("%ds", job.Interval))
 
-		if err != nil {
-			log.Printf("error parsing duration for job: %s\n", job.Id)
+			if err != nil {
+				log.Printf("error parsing duration for job: %s\n", job.Id)
+			}
+
+			go func() {
+				for {
+					if err := job.Scrape(); err != nil {
+						log.Printf("job: %s: error scraping: %s\n", job.Id, err)
+					}
+
+					time.Sleep(duration)
+				}
+			}()
 		}
-
-		go func() {
-			job.Scrape()
-
-			time.Sleep(duration)
-		}()
-	}
+	}()
 }
