@@ -21,7 +21,7 @@ Example Usage
 
 Start Selenium:
 
-    $ java -jar selenium-server-standalone-*.jar
+    $ java -jar selenium-server-standalone-X.X.X.jar
 
 Start apimaker. See ``apimaker --help`` for more options:
 
@@ -66,7 +66,6 @@ Start a python HTTP server to host the demo page:
                 ]
             }
         },
-        "id": "5e772c1f-96e0-11e4-b6fa-8c705a804d80",
         "interval": 3600000000000,
         "last_scraped": "2015-01-08T10:45:15.022743202+08:00",
         "scraped_data": {
