@@ -105,6 +105,7 @@ func (self *Job) Scrape() error {
 
 		for _, parent := range root {
 			values := make([]map[string]string, 0)
+			value := make(map[string]string)
 
 			for _, selector := range collection.Selectors {
 				el, err := parent.FindElement(selenium.ByCSSSelector, selector.Selector)
@@ -119,12 +120,10 @@ func (self *Job) Scrape() error {
 					continue
 				}
 
-				value := make(map[string]string)
 				value[selector.Name] = text
-
-				values = append(values, value)
 			}
 
+			values = append(values, value)
 			scraped[name] = append(scraped[name], values)
 		}
 	}
