@@ -27,7 +27,7 @@ func addJob(scheduler *Scheduler) httprouter.Handle {
 		decoder := json.NewDecoder(request.Body)
 
 		if err := decoder.Decode(&job); err != nil {
-			log.Printf("error decoding job\n")
+			log.Printf("error decoding job: %s\n", err)
 			http.Error(writer, "error decoding job", http.StatusBadRequest)
 
 			return

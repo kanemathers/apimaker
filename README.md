@@ -67,7 +67,7 @@ Start a python HTTP server to host the demo page:
             }
         },
         "id": "5e772c1f-96e0-11e4-b6fa-8c705a804d80",
-        "interval": 3600,
+        "interval": 3600000000000,
         "last_scraped": "2015-01-08T10:45:15.022743202+08:00",
         "scraped_data": {
             "news": [
@@ -98,3 +98,8 @@ Start a python HTTP server to host the demo page:
         },
         "url": "http://127.0.0.1:8000/demo.html"
     }
+
+### Removing a Job
+
+    $ curl -X DELETE http://127.0.0.1:8080/jobs/5e772c1f-96e0-11e4-b6fa-8c705a804d80
+

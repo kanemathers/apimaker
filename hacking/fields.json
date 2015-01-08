@@ -1,6 +1,6 @@
 {
     "url": "http://127.0.0.1:8000/demo.html",
-    "interval": 3600,
+    "interval": "1h",
     "collections": {
         "page_title": {
             "group": null,

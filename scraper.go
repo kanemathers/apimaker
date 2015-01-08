@@ -2,21 +2,52 @@ package main
 
 import (
 	"fmt"
-	"log"
+	"strconv"
+	"strings"
 	"time"
 
 	"bitbucket.org/tebeka/selenium"
 )
 
 var (
+	minimumInterval = 10.0
+
 	capabilities = selenium.Capabilities{
 		"browserName": "firefox",
 	}
 )
 
+type Duration time.Duration
+
+func (self *Duration) UnmarshalJSON(data []byte) error {
+	str := string(data)
+
+	// probably a better/safer way to do this
+	str = strings.Trim(str, "\"")
+
+	// check if the duration contains a unit. if not, default to seconds
+	if _, err := strconv.ParseInt(str, 10, 64); err == nil {
+		str = fmt.Sprintf("%ss", str)
+	}
+
+	duration, err := time.ParseDuration(str)
+
+	if err != nil {
+		return fmt.Errorf("unable to parse duration: %s\n", err)
+	}
+
+	if duration.Seconds() < minimumInterval {
+		return fmt.Errorf("duration must be a minimum of %0.1f seconds\n", minimumInterval)
+	}
+
+	*self = Duration(duration)
+
+	return nil
+}
+
 type Job struct {
 	URL         string                `json:"url"`
-	Interval    int                   `json:"interval"`
+	Interval    Duration              `json:"interval"`
 	LastScraped time.Time             `json:"last_scraped"`
 	Collections map[string]Collection `json:"collections"`
 	ScrapedData ScrapedElements       `json:"scraped_data"`
@@ -35,15 +66,7 @@ type Selector struct {
 type ScrapedElements map[string][][]map[string]string
 
 func (self *Job) GetInterval() time.Duration {
-	// TODO: Move this parsing into main.go when received job is first
-	// unmarshaled
-	duration, err := time.ParseDuration(fmt.Sprintf("%ds", self.Interval))
-
-	if err != nil {
-		log.Printf("error parsing duration\n")
-	}
-
-	return duration
+	return time.Duration(self.Interval)
 }
 
 func (self *Job) Run() error {
