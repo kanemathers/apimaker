@@ -36,7 +36,7 @@ func addJob(scheduler *Scheduler) httprouter.Handle {
 		jobId := scheduler.AddJob(&job)
 
 		response, _ := json.Marshal(struct {
-			Id string
+			Id string `json:"id"`
 		}{
 			jobId,
 		})
@@ -58,7 +58,7 @@ func getJobs(scheduler *Scheduler) httprouter.Handle {
 		}
 
 		response, _ := json.Marshal(struct {
-			Ids []string
+			Ids []string `json:"ids"`
 		}{
 			ids,
 		})

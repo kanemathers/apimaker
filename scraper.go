@@ -14,22 +14,22 @@ var (
 )
 
 type Job struct {
-	Id          string
-	URL         string
-	Interval    int
-	LastScraped time.Time
-	Collections map[string]Collection
-	ScrapedData ScrapedElements
+	Id          string                `json:"id"`
+	URL         string                `json:"url"`
+	Interval    int                   `json:"interval"`
+	LastScraped time.Time             `json:"last_scraped"`
+	Collections map[string]Collection `json:"collections"`
+	ScrapedData ScrapedElements       `json:"scraped_data"`
 }
 
 type Collection struct {
-	Group     *string
-	Selectors []Selector
+	Group     *string    `json:"group"`
+	Selectors []Selector `json:"selectors"`
 }
 
 type Selector struct {
-	Selector string
-	Name     string
+	Selector string `json:"selector"`
+	Name     string `json:"name"`
 }
 
 type ScrapedElements map[string][]map[string]string
