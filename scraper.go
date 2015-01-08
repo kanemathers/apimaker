@@ -19,8 +19,7 @@ type Job struct {
 	Interval    int
 	LastScraped time.Time
 	Collections map[string]Collection
-
-	scrapedData ScrapedElements
+	ScrapedData ScrapedElements
 }
 
 type Collection struct {
@@ -87,7 +86,7 @@ func (self *Job) Scrape() error {
 		}
 	}
 
-	self.scrapedData = scraped
+	self.ScrapedData = scraped
 	self.LastScraped = time.Now()
 
 	return nil
