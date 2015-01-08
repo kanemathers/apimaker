@@ -61,19 +61,25 @@ func (self *Scheduler) RemoveTask(id string) error {
 
 func (self *Scheduler) Start() {
 	runTask := func(task Task) {
+		runWorker := func() {
+			log.Printf("running worker: %s\n", task.Id)
+
+			if err := task.Job.Run(); err != nil {
+				log.Printf("error running worker: %s: %s\n", task.Id, err)
+			}
+		}
+
+		ticker := time.Tick(task.Interval)
+
+		runWorker()
+
 		for {
 			select {
 			case <-task.stopChan:
 				return
 
-			default:
-				log.Printf("running worker: %s\n", task.Id)
-
-				if err := task.Job.Run(); err != nil {
-					log.Printf("error running worker: %s: %s\n", task.Id, err)
-				}
-
-				time.Sleep(task.Interval)
+			case <-ticker:
+				runWorker()
 			}
 		}
 	}
