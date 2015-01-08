@@ -8,44 +8,75 @@ import (
 	"code.google.com/p/go-uuid/uuid"
 )
 
-type Scheduler struct {
-	Jobs map[string]*Job
+type Worker interface {
+	Run() error
+	GetInterval() time.Duration
+}
 
-	newJobChan chan *Job
+type Task struct {
+	Id       string
+	Job      Worker
+	Interval time.Duration
+	stopChan chan struct{}
+}
+
+type Scheduler struct {
+	Tasks       map[string]Task
+	newTaskChan chan Task
 }
 
 func NewScheduler() *Scheduler {
 	return &Scheduler{
-		Jobs:       make(map[string]*Job),
-		newJobChan: make(chan *Job),
+		Tasks:       make(map[string]Task),
+		newTaskChan: make(chan Task),
 	}
 }
 
-func (self *Scheduler) AddJob(job *Job) string {
-	job.Id = uuid.NewUUID().String()
-	self.Jobs[job.Id] = job
+func (self *Scheduler) NewTask(job Worker) Task {
+	task := Task{
+		Id:       uuid.NewUUID().String(),
+		Job:      job,
+		Interval: job.GetInterval(),
+		stopChan: make(chan struct{}),
+	}
 
-	self.newJobChan <- job
+	self.Tasks[task.Id] = task
 
-	return job.Id
+	self.newTaskChan <- task
+
+	return task
+}
+
+func (self *Scheduler) RemoveTask(id string) error {
+	task, ok := self.Tasks[id]
+
+	if !ok {
+		return fmt.Errorf("unknown worker: %s\n", id)
+	}
+
+	task.stopChan <- struct{}{}
+
+	return nil
 }
 
 func (self *Scheduler) Start() {
 	go func() {
-		for job := range self.newJobChan {
-			duration, err := time.ParseDuration(fmt.Sprintf("%ds", job.Interval))
-
-			if err != nil {
-				log.Printf("error parsing duration for job: %s\n", job.Id)
-			}
-
+		for task := range self.newTaskChan {
 			go func() {
 				for {
-					if err := job.Scrape(); err != nil {
-						log.Printf("job: %s: error scraping: %s\n", job.Id, err)
-					}
+					select {
+					case <-task.stopChan:
+						return
 
-					time.Sleep(duration)
+					default:
+						log.Printf("running worker: %s\n", task.Id)
+
+						if err := task.Job.Run(); err != nil {
+							log.Printf("error running worker: %s: %s\n", task.Id, err)
+						}
+
+						time.Sleep(task.Interval)
+					}
 				}
 			}()
 		}

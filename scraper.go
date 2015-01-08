@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"time"
 
 	"bitbucket.org/tebeka/selenium"
@@ -14,7 +15,6 @@ var (
 )
 
 type Job struct {
-	Id          string                `json:"id"`
 	URL         string                `json:"url"`
 	Interval    int                   `json:"interval"`
 	LastScraped time.Time             `json:"last_scraped"`
@@ -33,6 +33,22 @@ type Selector struct {
 }
 
 type ScrapedElements map[string][][]map[string]string
+
+func (self *Job) GetInterval() time.Duration {
+	// TODO: Move this parsing into main.go when received job is first
+	// unmarshaled
+	duration, err := time.ParseDuration(fmt.Sprintf("%ds", self.Interval))
+
+	if err != nil {
+		log.Printf("error parsing duration\n")
+	}
+
+	return duration
+}
+
+func (self *Job) Run() error {
+	return self.Scrape()
+}
 
 func (self *Job) Scrape() error {
 	wd, err := selenium.NewRemote(capabilities, "")

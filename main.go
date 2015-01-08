@@ -33,15 +33,15 @@ func addJob(scheduler *Scheduler) httprouter.Handle {
 			return
 		}
 
-		jobId := scheduler.AddJob(&job)
+		task := scheduler.NewTask(&job)
 
 		response, _ := json.Marshal(struct {
 			Id string `json:"id"`
 		}{
-			jobId,
+			task.Id,
 		})
 
-		log.Printf("adding job: %s\n", jobId)
+		log.Printf("adding job: %s\n", task.Id)
 
 		writer.Header().Set("Content-type", "application/json")
 		writer.Write(response)
@@ -51,9 +51,9 @@ func addJob(scheduler *Scheduler) httprouter.Handle {
 func getJobs(scheduler *Scheduler) httprouter.Handle {
 	return func(writer http.ResponseWriter, request *http.Request,
 		_ httprouter.Params) {
-		ids := make([]string, 0, len(scheduler.Jobs))
+		ids := make([]string, 0, len(scheduler.Tasks))
 
-		for k := range scheduler.Jobs {
+		for k := range scheduler.Tasks {
 			ids = append(ids, k)
 		}
 
@@ -72,13 +72,13 @@ func getJob(scheduler *Scheduler) httprouter.Handle {
 	return func(writer http.ResponseWriter, request *http.Request,
 		params httprouter.Params) {
 
-		job, ok := scheduler.Jobs[params.ByName("id")]
+		task, ok := scheduler.Tasks[params.ByName("id")]
 
 		if !ok {
 			return
 		}
 
-		response, _ := json.Marshal(job)
+		response, _ := json.Marshal(task.Job)
 
 		writer.Header().Set("Content-type", "application/json")
 		writer.Write(response)
@@ -90,7 +90,14 @@ func removeJob(scheduler *Scheduler) httprouter.Handle {
 		params httprouter.Params) {
 
 		log.Printf("removing job: %s\n", params.ByName("id"))
-		log.Printf("CODE ME: %s\n", params.ByName("id"))
+
+		if err := scheduler.RemoveTask(params.ByName("id")); err != nil {
+			http.Error(writer, "unknown job id", http.StatusNotFound)
+
+			return
+		}
+
+		writer.WriteHeader(http.StatusOK)
 	}
 }
 
