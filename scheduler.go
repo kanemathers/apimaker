@@ -60,25 +60,27 @@ func (self *Scheduler) RemoveTask(id string) error {
 }
 
 func (self *Scheduler) Start() {
+	runTask := func(task Task) {
+		for {
+			select {
+			case <-task.stopChan:
+				return
+
+			default:
+				log.Printf("running worker: %s\n", task.Id)
+
+				if err := task.Job.Run(); err != nil {
+					log.Printf("error running worker: %s: %s\n", task.Id, err)
+				}
+
+				time.Sleep(task.Interval)
+			}
+		}
+	}
+
 	go func() {
 		for task := range self.newTaskChan {
-			go func() {
-				for {
-					select {
-					case <-task.stopChan:
-						return
-
-					default:
-						log.Printf("running worker: %s\n", task.Id)
-
-						if err := task.Job.Run(); err != nil {
-							log.Printf("error running worker: %s: %s\n", task.Id, err)
-						}
-
-						time.Sleep(task.Interval)
-					}
-				}
-			}()
+			go runTask(task)
 		}
 	}()
 }
